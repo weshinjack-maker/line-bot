@@ -11,7 +11,7 @@ app = Flask(__name__)
 configuration = Configuration(access_token=os.environ.get('LINE_CHANNEL_ACCESS_TOKEN'))
 handler = WebhookHandler(os.environ.get('LINE_CHANNEL_SECRET'))
 
-# 📣 請把下面單引號裡的字，換成你剛剛在手機 ntfy APP 裡自己輸入的 Topic 名稱！
+# 📣 這邊已經幫你設定好跟你手機一樣的 Topic 名稱了！
 NTFY_TOPIC = 'weshin_line_notify_99'
 
 @app.route("/callback", methods=['POST'])
