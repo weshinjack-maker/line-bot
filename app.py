@@ -5,13 +5,14 @@ from linebot.v3.messaging import (Configuration, ApiClient, MessagingApi, ReplyM
 from linebot.v3.webhooks import MessageEvent, TextMessageContent
 import os
 import requests
+import urllib.parse
 
 app = Flask(__name__)
 
 configuration = Configuration(access_token=os.environ.get('LINE_CHANNEL_ACCESS_TOKEN'))
 handler = WebhookHandler(os.environ.get('LINE_CHANNEL_SECRET'))
 
-# 📣 這邊已經幫你設定好跟你手機一樣的 Topic 名稱了！
+# 📣 你的專屬安卓手機訂閱頻道
 NTFY_TOPIC = 'weshin_line_notify_99'
 
 @app.route("/callback", methods=['POST'])
@@ -44,17 +45,15 @@ def handle_message(event):
         
         # 動作 B：發送 ntfy 手機系統推播通知給老闆（Android）
         if NTFY_TOPIC:
-            ntfy_url = f"https://ntfy.sh/{NTFY_TOPIC}"
-            headers = {
-                "Title": "LINE官方帳號新訊息",
-                "Tags": "loudspeaker",
-                "Priority": "high"
-            }
-            # 將文字轉成 utf-8 編碼確保中文不亂碼
-            body_text = f"客人說：{user_message}".encode('utf-8')
+            # 使用更安全的網址參數傳送中文，避免拉丁編碼錯誤
+            message_content = f"客人說：{user_message}"
+            encoded_message = urllib.parse.quote(message_content)
+            encoded_title = urllib.parse.quote("LINE官方帳號新訊息")
+            
+            ntfy_url = f"https://ntfy.sh/{NTFY_TOPIC}/publish?message={encoded_message}&title={encoded_title}&tags=loudspeaker&priority=high"
             
             try:
-                requests.post(ntfy_url, data=body_text, headers=headers)
+                requests.get(ntfy_url)
             except Exception as e:
                 print(f"ntfy 推播失敗: {e}")
 
